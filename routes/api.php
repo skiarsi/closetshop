@@ -1,37 +1,22 @@
 <?php
 
+use App\Http\Controllers\Auth\CredentialAuth;
 use App\Http\Controllers\Auth\GoogleAuthController;
-use App\Models\User;
+use App\Http\Controllers\ProductController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/login', function (Request $request) {
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
-
-    $user = User::where('email', $request->email)->first();
-
-    if (! $user || ! Hash::check($request->password, $user->password)) {
-        return response()->json(['message' => 'Invalid credentials'], 401);
-    }
-
-    $token = $user->createToken('access_token')->plainTextToken;
-
-    return response()->json(['token' => $token]);
-});
 
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/protected', function (Request $request) {
-        return response()->json([
-            'message' => 'This is a protected route',
-            'user' => $request->user(),
-        ]);
-    });
-});
+// products
+Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+
+
+Route::post('/login', [CredentialAuth::class, 'login'])->name('login');
+Route::post('/register', [CredentialAuth::class,'register'])->name('register');
+
+Route::middleware('auth:sanctum')->post('/logout', [CredentialAuth::class, 'logout'])->name('logout');
+
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return response()->json($request->user());
